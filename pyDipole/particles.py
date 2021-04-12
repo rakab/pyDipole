@@ -13,9 +13,10 @@ particle_table = {
         'tbar' : [True, True],
         'e'    : [False, False],
         'ebar' : [False, False],
+        'g'    : [False, True]
         }
 
-par_id = 0
+par_id = 1
 
 
 class Particle(object):
