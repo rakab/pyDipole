@@ -15,6 +15,8 @@ particle_table = {
         'ebar' : [False, False],
         }
 
+par_id = 0
+
 
 class Particle(object):
     def __init__(self,name):
@@ -24,6 +26,9 @@ class Particle(object):
             self.isQCD = particle_table[name][1]
         except KeyError:
             raise KeyError("particle {} is not defined".format(name))
+        global par_id
+        self.id = par_id
+        par_id = par_id + 1
 
     @property
     def name(self):
