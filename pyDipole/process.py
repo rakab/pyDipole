@@ -13,28 +13,13 @@ class Process(object):
 
         particle name should be given as a string
         """
-        self.initial = []
-        for init_par in initial:
-            self.initial.append(Particle(init_par))
+        self.all_particles = []
+        for par in initial:
+            p = Particle(par)
+            setattr(p,'initial', True)
+            self.all_particles.append(p)
 
-        self.final = []
-        for fin_par in final:
-            self.final.append(Particle(fin_par))
-
-        self.all_particles = self.initial+self.final
-
-    @property
-    def initial(self):
-        return self.__initial;
-
-    @initial.setter
-    def initial(self, initial):
-        self.__initial = initial
-
-    @property
-    def final(self):
-        return self.__final;
-
-    @final.setter
-    def final(self, final):
-        self.__final = final
+        for par in final:
+            p = Particle(par)
+            setattr(p,'initial', False)
+            self.all_particles.append(p)

@@ -1,12 +1,33 @@
 import subprocess
-from pyDipole import Process
+import logging
 import sympy as sy
 import re
+
+from pyDipole import Process
+
+logging.getLogger().setLevel(logging.INFO)
+
 
 proc = Process(['e','ebar'],['u','ubar'])
 
 expressions = ''
 par1_rules = ''
+
+#SymPy variables
+alphas = sy.Symbol('alphas')
+ep,pi,mu = sy.symbols('ep pi mu')
+mom = dict()
+for p in proc.all_particles:
+    mom[p.id]=sy.Symbol('p_{0}'.format(p.id))
+Col = sy.Function('Col')
+Nu = sy.Function('Nu')
+
+
+def eq_c27(id1, id2):
+    global expressions
+    expressions += '''\
+L I{0}{1} = -Alfas/(2*pi)*InvGamma(1-eps)*denom(Col({0},{0}))*Nu0({0})*Col({0},{1})*Mu0({0},{1})^eps;\n
+'''.format(id1,id2)
 
 for par1 in proc.all_particles:
     if not par1.isQCD:
@@ -30,11 +51,69 @@ id K({0}) = (7/2-pi^2/6)*CF;
             continue
         if not par2.isQCD:
             continue
-        expressions += "L I{0}{1} = I({0},{1},{2:d});\n\n".format(par1.id,par2.id,par1.isMassive)
 
+        logging.info('Evaluating I_{0}{1}...'.format(par1.id,par2.id))
 
+        #final fermion
+        if (par1.name != 'g' and not par1.initial):
+            if not par2.initial:
+                if not par1.isMassive and not par2.isMassive:
+                    #C.27
+                    logging.info('(i,k)=(f,k), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
+                else:
+                    #6.16
+                    logging.info('(i,k)=(f,k), massive, using eq 6.16')
+            else:
+                if not par1.isMassive:
+                    #C.27
+                    logging.info('(i,k)=(f,b), massless, using eq C.27')
+                else:
+                    #6.52
+                    logging.info('(i,k)=(f,b), massive, using eq 6.52')
+        #final gluon
+        elif (par1.name == 'g' and not par1.initial):
+            if not par2.initial:
+                if not par1.isMassive and not proc.mF_list:
+                    #C.27
+                    logging.info('(i,k)=(g,k), massless, using eq C.27')
+                else:
+                    #6.16
+                    logging.info('(i,k)=(g,k), massive, using eq 6.16')
+            else:
+                if not proc.mF_list:
+                    #C.27
+                    logging.info('(i,k)=(g,b), massless, using eq C.27')
+                else:
+                    #6.52
+                    logging.info('(i,k)=(g,b), massive, using eq 6.52')
+        #initial fermion
+        elif (par1.name != 'g' and par1.initial):
+            if not par2.initial:
+                if not par2.isMassive:
+                    #C.27
+                    logging.info('(a,k)=(f,k), massless, using eq C.27')
+                else:
+                    #6.52
+                    logging.info('(a,k)=(f,k), massive, using eq 6.52')
+            else:
+                #C.27
+                    logging.info('(a,b)=(f,b), massless, using eq C.27')
+        #initial gluon
+        elif (par1.name == 'g' and par1.initial):
+            if not par2.initial:
+                if not par2.isMassive:
+                    #C.27
+                    logging.info('(a,k)=(g,k), massless, using eq C.27')
+                else:
+                    #6.52
+                    logging.info('(a,k)=(g,k), massive, using eq 6.52')
+            else:
+                #C.27
+                    logging.info('(a,b)=(g,b), massless, using eq C.27')
 
 print(expressions)
+
 
 code = '''\
 #-
@@ -42,16 +121,14 @@ off stats;
 
 S Alfas, pi, eps, CF, CA, Tr, Nfl;
 CF denom;
-CF I, MuFactor, InvGamma, Col,Nu, Gamm, K;
+CF I, Mu0, InvGamma, Col, Nu0, Gamm, K;
 AutoDeclare I i;\n
 '''
 
 code += expressions
 
 code += '''\
-\nid I(i1?,i2?,0) = -Alfas/(2*pi)*InvGamma(1-eps)*denom(Col(i1,i1))*Nu(i1)*Col(i1,i2)*MuFactor(i1,i2)^eps;
-
-id Nu(i1?) = Col(i1,i1)*(eps^(-2)-pi^2/3)+Gamm(i1)*eps^(-1)+Gamm(i1)+K(i1);\n\n
+id Nu0(i1?) = Col(i1,i1)*(eps^(-2)-pi^2/3)+Gamm(i1)*eps^(-1)+Gamm(i1)+K(i1);\n\n
 '''
 
 code += par1_rules
@@ -63,7 +140,7 @@ endargument;
 id denom(?k) = exp_(?k,-1);
 .sort
 Print;
-B InvGamma,Alfas,pi,MuFactor;
+B InvGamma,Alfas,pi,Mu0;
 .end
 '''.format(par1_rules)
 

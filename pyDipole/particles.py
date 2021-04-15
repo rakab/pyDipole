@@ -45,6 +45,9 @@ class Particle(object):
     def __str__(self):
         return '{0}({1})'.format(self.__class__.__name__, self.__dict__)
 
+    def __setattr__(self,name,value):
+        super(Particle,self).__setattr__(name,value)
+
 def particles(name):
     if not isinstance(name, str):
         raise TypeError("Particle names should be given as a space separated string")
