@@ -8,7 +8,7 @@ from pyDipole import Process
 logging.getLogger().setLevel(logging.INFO)
 
 
-proc = Process(['e','ebar'],['u','ubar'])
+proc = Process(['e','ebar'],['t','ubar'])
 
 expressions = ''
 par1_rules = ''
@@ -28,6 +28,16 @@ def eq_c27(id1, id2):
     expressions += '''\
 L I{0}{1} = -Alfas/(2*pi)*InvGamma(1-eps)*denom(Col({0},{0}))*Nu0({0})*Col({0},{1})*Mu0({0},{1})^eps;\n
 '''.format(id1,id2)
+
+def eq_616(id1,id2):
+    global expressions
+    expressions += '''\
+L I{0}{1} = -Alfas*(4*pi)**eps/(2*pi)*InvGamma(1-eps)*denom(Col({0},{0}))*(Col({0},{1})*Col({1},{1})*Mu616({0},{1})^eps*
+(Nu616({0},{1})-pi^2/3)+Gamma616({0})+Gamma({0})*Log(Mu616({0},{1}))+Gamm({0})+K({0}));
+'''.format(id1,id2)
+
+def eq_652(id1,id2):
+    pass
 
 for par1 in proc.all_particles:
     if not par1.isQCD:
@@ -64,6 +74,7 @@ id K({0}) = (7/2-pi^2/6)*CF;
                 else:
                     #6.16
                     logging.info('(i,k)=(f,k), massive, using eq 6.16')
+                    eq_616(par1.id, par2.id)
             else:
                 if not par1.isMassive:
                     #C.27
@@ -121,7 +132,10 @@ off stats;
 
 S Alfas, pi, eps, CF, CA, Tr, Nfl;
 CF denom;
-CF I, Mu0, InvGamma, Col, Nu0, Gamm, K;
+CF I,InvGamma, Col, Nu0, Nu616 Gamm, K, Gamma616;
+CF Mu0, Mu616, Log;
+CF NuSmm, NuSmz, NuSzm;
+CF NuNSmm, NuNSmz, NuNSzm;
 AutoDeclare I i;\n
 '''
 
