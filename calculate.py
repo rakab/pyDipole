@@ -8,7 +8,7 @@ from pyDipole import Process
 logging.getLogger().setLevel(logging.INFO)
 
 
-proc = Process(['e','ebar'],['t','tbar','g'],['t'])
+proc = Process(['u','ebar'],['t','tbar','g'],['t'])
 
 expressions = ''
 par1_rules = ''
@@ -20,7 +20,7 @@ gamma6_rules = ''
 def eq_c27(id1, id2):
     global expressions
     expressions += '''\
-L I{0}{1} = -Alfas/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Nu0({0})*Col({0},{1})*Mu0({0},{1})^eps;\n
+L I{0}{1} = -Alfas/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Nu0({0})*Col({0},{1})*(4*pi*mu^2*s({0},{1})^(-1))^eps;\n
 '''.format(id1,id2)
 
 def eq_616(id1,id2):
