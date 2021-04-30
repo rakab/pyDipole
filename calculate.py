@@ -8,7 +8,7 @@ from pyDipole import Process
 logging.getLogger().setLevel(logging.INFO)
 
 
-proc = Process(['e','ebar'],['t','tbar'])
+proc = Process(['e','ebar'],['t','tbar','g'],['t'])
 
 expressions = ''
 par1_rules = ''
@@ -26,8 +26,8 @@ L I{0}{1} = -Alfas/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Nu0({0})*Col({0},{
 def eq_616(id1,id2):
     global expressions
     expressions += '''\
-L I{0}{1} = -Alfas*(4*pi)**eps/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Col({0},{1})*(Col({0},{0})*(mu^2*s({0},{1})^-1)^eps*
-(Nu616({0},{1})-pi^2/3)+Gamma616({0})+Gamm({0})*log(mu^2*s({0},{1})^-1)+Gamm({0})+K({0}));
+L I{0}{1} = -Alfas*(4*pi)**eps/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Col({0},{1})*(Col({0},{0})*(mu^2*s({0},{1})^(-1))^eps*
+(Nu616({0},{1})-pi^2/3)+Gamma616({0})+Gamm({0})*log(mu^2*s({0},{1})^(-1))+Gamm({0})+K({0}));
 '''.format(id1,id2)
 
 def eq_652(id1,id2):
@@ -75,66 +75,78 @@ id K({0}) = (7/2-pi^2/6)*CF;
                 if not par1.isMassive:
                     #C.27
                     logging.info('(i,k)=(f,b), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
                 else:
                     #6.52
                     logging.info('(i,k)=(f,b), massive, using eq 6.52')
+                    eq_652(par1.id, par2.id)
         #final gluon
         elif (par1.name == 'g' and not par1.initial):
             if not par2.initial:
                 if not par1.isMassive and not proc.mF_list:
                     #C.27
                     logging.info('(i,k)=(g,k), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
                 else:
                     #6.16
                     logging.info('(i,k)=(g,k), massive, using eq 6.16')
+                    eq_616(par1.id, par2.id)
             else:
                 if not proc.mF_list:
                     #C.27
                     logging.info('(i,k)=(g,b), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
                 else:
                     #6.52
                     logging.info('(i,k)=(g,b), massive, using eq 6.52')
+                    eq_652(par1.id, par2.id)
         #initial fermion
         elif (par1.name != 'g' and par1.initial):
             if not par2.initial:
                 if not par2.isMassive:
                     #C.27
                     logging.info('(a,k)=(f,k), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
                 else:
                     #6.52
                     logging.info('(a,k)=(f,k), massive, using eq 6.52')
+                    eq_652(par1.id, par2.id)
             else:
                 #C.27
                     logging.info('(a,b)=(f,b), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
         #initial gluon
         elif (par1.name == 'g' and par1.initial):
             if not par2.initial:
                 if not par2.isMassive:
                     #C.27
                     logging.info('(a,k)=(g,k), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
                 else:
                     #6.52
                     logging.info('(a,k)=(g,k), massive, using eq 6.52')
+                    eq_652(par1.id, par2.id)
             else:
                 #C.27
                     logging.info('(a,b)=(g,b), massless, using eq C.27')
+                    eq_c27(par1.id, par2.id)
 
         #Nu replacement rules
         if (par1.isMassive and par2.isMassive):
             nu_rules += '''\
-id Nu616S({0},{1}) = Denom(v({0},{1}))*(eps^-1*log(rho({0},{1}))-
+id Nu616S({0},{1}) = Denom(v({0},{1}))*(eps^(-1)*log(rho({0},{1}))-
 1/4*log(rhon({0},{1},{0})^2)^2-1/4*log(rhon({0},{1},{1})^2)^2-pi^2/6+
 log(rho({0},{1}))*log(Qij({0},{1})^2/s({0},{1})));
 '''.format(par1.id, par2.id)
         elif (par1.isMassive and not par2.isMassive):
             nu_rules += '''\
-id Nu616S({0},{1}) = eps^-2/2+eps^-1/2*log(m({0})^2/s({0},{1}))-
+id Nu616S({0},{1}) = eps^-2/2+eps^(-1)/2*log(m({0})^2/s({0},{1}))-
 1/4*log(m({0})^2/s({0},{1}))-pi^2/12-1/2*log(m({0})^2/s({0},{1}))*log(s({0},{1})*Qij({0},{1})^-2)-
 1/2*log(m({0})^2*Qij({0},{1})^-2)*log(s({0},{1})*Qij({0},{1})^-2);
 '''.format(par1.id, par2.id)
         elif (not par1.isMassive and par2.isMassive):
             nu_rules += '''\
-id Nu616S({1},{0}) = eps^-2/2+eps^-1/2*log(m({0})^2/s({0},{1}))-
+id Nu616S({1},{0}) = eps^-2/2+eps^(-1)/2*log(m({0})^2/s({0},{1}))-
 1/4*log(m({0})^2/s({0},{1}))-pi^2/12-1/2*log(m({0})^2/s({0},{1}))*log(s({0},{1})*Qij({0},{1})^-2)-
 1/2*log(m({0})^2*Qij({0},{1})^-2)*log(s({0},{1})*Qij({0},{1})^-2);
 '''.format(par2.id, par1.id)
@@ -145,9 +157,9 @@ id Nu616S({0},{1}) = eps^-2;
 
         #gamma616 replacement rules (singular part only)
         if not par1.isMassive:
-            gamma6_rules += 'id Gamma616({0}) = eps^-1*Gamm({0});\n'.format(par1.id)
+            gamma6_rules += 'id Gamma616({0}) = eps^(-1)*Gamm({0});\n'.format(par1.id)
         else:
-            gamma6_rules += 'id Gamma616({0}) = eps^-1*CF;\n'.format(par1.id)
+            gamma6_rules += 'id Gamma616({0}) = eps^(-1)*CF;\n'.format(par1.id)
 
 print(expressions)
 
