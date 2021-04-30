@@ -16,15 +16,6 @@ par1_defs = 'S '
 nu_rules = ''
 gamma6_rules = ''
 
-#SymPy variables
-alphas = sy.Symbol('alphas')
-ep,pi,mu = sy.symbols('ep pi mu')
-mom = dict()
-for p in proc.all_particles:
-    mom[p.id]=sy.Symbol('p_{0}'.format(p.id))
-Col = sy.Function('Col')
-Nu = sy.Function('Nu')
-
 
 def eq_c27(id1, id2):
     global expressions
@@ -275,20 +266,33 @@ form_res = form_res.split(';')[:-1]
 #Prepare SymPy variables
 InvGamma = sy.Function('InvGamma')
 MuFactor = sy.Function('MuFactor')
-Col = sy.Function('Col')
-eps = sy.Symbol('eps')
-a_,b_ = map(sy.Wild, 'ab')
-Denom = sy.Function('Denom')
+Col      = sy.Function('Col')
+Denom    = sy.Function('Denom')
+m        = sy.Function('m')
+eps      = sy.Symbol('eps')
+a,b    = map(sy.Wild, 'ab')
+alphas   = sy.Symbol('alphas')
+ep,pi,mu = sy.symbols('ep pi mu')
+mom      = dict()
+masses   = dict()
+for p in proc.all_particles:
+    mom[p.id]=sy.Symbol('p{0}'.format(p.id))
+    if p.isQCD and p.isMassive:
+        masses[p.id] = sy.Symbol(p.mass)
 
 
 eq_dict = dict()
 for eq in form_res:
-    eq_name = re.search(r"^(.*)=",eq).group(0)[:-1]
+    eq_name          = re.search(r"^(.*)=",eq).group(0)[:-1]
     eq_dict[eq_name] = []
+
     eq = sy.together(sy.sympify(eq.replace(eq_name+'=','')))
-    eq = eq.replace(InvGamma(a_),1/sy.gamma(a_))
-    eq = eq.replace(Denom(a_),1/a_)
+    eq = eq.replace(InvGamma(a), 1/sy.gamma(a))
+    eq = eq.replace(Denom(a), 1/a)
+    eq = eq.replace(m(a), lambda a: masses[a])
+
     series = sy.series(eq,eps,n=0)
+
     eq_dict[eq_name].append(eq)
     eq_dict[eq_name].append(series.coeff(eps**-1).simplify())
     eq_dict[eq_name].append(series.coeff(eps**-2).simplify())

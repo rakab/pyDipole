@@ -3,17 +3,17 @@ __all__ = [
         'particles',
         ]
 """
-Style: name: [isMassive(bool),isQCD(bool)]
+Style: name: [mass(string),isQCD(bool)]
 """
 
 particle_table = {
-        'u'    : [False, True],
-        'ubar' : [False, True],
-        't'    : [True, True],
-        'tbar' : [True, True],
-        'e'    : [False, False],
-        'ebar' : [False, False],
-        'g'    : [False, True]
+        'u'    : ['0' , True],
+        'ubar' : ['0' , True],
+        't'    : ['mt', True],
+        'tbar' : ['mt', True],
+        'e'    : ['0' , False],
+        'ebar' : ['0' , False],
+        'g'    : ['0' , True]
         }
 
 par_id = 1
@@ -23,8 +23,9 @@ class Particle(object):
     def __init__(self,name):
         self.name = name
         try:
-            self.isMassive = particle_table[name][0]
+            self.mass = particle_table[name][0]
             self.isQCD = particle_table[name][1]
+            self.isMassive = False if self.mass == '0' else True
         except KeyError:
             raise KeyError("particle {} is not defined".format(name))
         global par_id
