@@ -8,7 +8,7 @@ from pyDipole import Process
 logging.getLogger().setLevel(logging.INFO)
 
 
-proc = Process(['u','ebar'],['t','tbar','g'],['t'])
+proc = Process(['g','g'],['t','tbar'],['t'])
 
 expressions = ''
 par1_rules = ''
@@ -31,7 +31,11 @@ L I{0}{1} = -Alfas*(4*pi)**eps/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Col({0
 '''.format(id1,id2)
 
 def eq_652(id1,id2):
-    pass
+    global expressions
+    expressions += '''\
+L I{0}{1} = -Alfas*(4*pi)**eps/(2*pi)*InvGamma(1-eps)*Denom(Col({0},{0}))*Col({0},{1})*(Col({0},{0})*(mu^2*s({0},{1})^(-1))^eps*
+(Nu616({0},{1})-pi^2/3)+Gamma616({0})+Gamm({0})*log(mu^2*s({0},{1})^(-1))+Gamm({0})+K({0}));
+'''.format(id1,id2)
 
 for par1 in proc.all_particles:
     if not par1.isQCD:
@@ -42,7 +46,7 @@ for par1 in proc.all_particles:
     if par1.name == 'g':
         par1_rules += '''\
 id Col({0},{0}) = CA;
-id Gamm({0}) = CA*11/6-Tr*Nfl;
+id Gamm({0}) = CA*11/6-Tr*Nfl*2/3;
 id K({0}) = (67/18-pi^2/6)*CA-Tr*Nfl*10/9;\n
 '''.format(par1.id)
     else:
